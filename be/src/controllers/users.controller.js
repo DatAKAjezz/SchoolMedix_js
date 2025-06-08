@@ -17,7 +17,8 @@ export async function createParent(req, res) {
             email,
             password,
             app_metadata: { role },
-            user_metadata: { name }
+            user_metadata: { name },
+            email_confirm: true
       });
 
       if (error) {
@@ -56,10 +57,6 @@ export async function createStudent(req, res) {
             return res.status(400).json({ error: "Missing required fields" });
       }
 
-      if (!mom_id && !dad_id) {
-            return res.status(400).json({ error: "At least one of mom_id or dad_id is required" });
-      }
-
       if (mom_id && dad_id && mom_id === dad_id) {
             return res.status(400).json({ error: "Mom and Dad IDs must be different" });
       }
@@ -72,7 +69,8 @@ export async function createStudent(req, res) {
             email,
             password,
             app_metadata: { role },
-            user_metadata: { name }
+            user_metadata: { name },
+            email_confirm: true
       });
 
       if (error) {
@@ -82,7 +80,7 @@ export async function createStudent(req, res) {
 
       const id = data.user.id;
       console.log("✅ Created student in Supabase:", id);
-
+      return;
       // Step 2: Insert into database
       try {
             const result = await query(
@@ -120,7 +118,8 @@ export async function createAdmin(req, res) {
             email,
             password,
             app_metadata: { role },
-            user_metadata: { name }
+            user_metadata: { name },
+            email_confirm: true
       });
 
       if (error) {
@@ -156,7 +155,8 @@ export async function createNurse(req, res) {
             email,
             password,
             app_metadata: { role },
-            user_metadata: { name }
+            user_metadata: { name },
+            email_confirm: true
       });
 
       if (error) {
