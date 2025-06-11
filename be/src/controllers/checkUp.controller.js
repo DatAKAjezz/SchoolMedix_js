@@ -7,20 +7,19 @@ export async function createCampaign(req, res) {
         location,
         start_date,
         end_date,
-        status,   //Default:PREPARING-->UPCOMING-->ONGOING -->DONE or CANCELLED
-        specialist_exam_name
+        // status,   //Default:PREPARING-->UPCOMING-->ONGOING -->DONE or CANCELLED
+        specialist_exam_ids
     } = req.body;
 
-    const specialist_exam_ids = [];
     const register_ids = [];
 
-    if (!name || !description || !location || !start_date || !end_date || !Array.isArray(specialist_exam_name)) {
+    if (!name || !description || !location || !start_date || !end_date || !Array.isArray(specialist_exam_ids)) {
         return res.status(400).json({ error: true, message: "Thiếu các thông tin cần thiết." });
     }
 
 
     try {
-        // Thực hiện truy vấn thêm mới campaign
+        // Buoc 1: Thêm mới một đợt checkup
         const result_campaign = await query(
             `INSERT INTO CheckupCampaign 
             (name, description, location, start_date, end_date, status) 
@@ -29,14 +28,22 @@ export async function createCampaign(req, res) {
             [name, description, location, start_date, end_date, 'PREPARING']
         );
 
-        const campaign = result_campaign.rows[0];   // ⬅lấy record đầu tiên
+        const campaign = result_campaign.rows[0];
 
+        // Buoc 2: Lấy từng id khám chuyên khoa gắn vào trong bảng
+        for (const exam_id of specialist_exam_ids) {
+            //Create CampainContain
+            await query(
+                `INSERT INTO CampaignContainSpeExam (campaign_id, specialist_exam_id)
+         VALUES ($1, $2)`,
+                [campaign.id, exam_id]
+            );
 
-        //Lấy danh sách student
+        }
+
+        // Buoc 3: Tạo register cho toàn trường
         const result_student = await query(`SELECT * FROM Student`);
         const students = result_student.rows;
-
-        //Tạo CheckUp Register  và cho từng Student đợi Parent res
         for (const student of students) {
             await query(
                 `INSERT INTO CheckupRegister (campaign_id, student_id, status)
@@ -44,62 +51,32 @@ export async function createCampaign(req, res) {
                 [campaign.id, student.id, 'PENDING']
             );
         }
-        //Lấy ID  từ name của SpecialistExamList
-        for (const examName of specialist_exam_name) {
 
-            const result_exam = await query(
-                `SELECT id FROM SpecialistExamList WHERE name = $1`,
-                [examName]
-            );
-
-
-            if (result_exam.rows.length === 0) {
-                continue;
-            }
-
-            const examId = result_exam.rows[0].id;
-            specialist_exam_ids.push(examId);
-
-            //Create CampainContain
-
-
-
-            await query(
-                `INSERT INTO CampaignContainSpeExam (campaign_id, specialist_exam_id)
-         VALUES ($1, $2)`,
-                [campaign.id, examId]
-            );
-
-
-
-
-        }
-
-
-
-        //Lấy tất cả các id Register  có Campaign ID mới vừa tạo
+        //Lấy tất cả các id Register có Campaign ID mới vừa tạo
         const result_checkup_register =
             await query('SELECT * FROM checkupregister WHERE campaign_id = $1', [campaign.id]
 
             );
-
         for (const row of result_checkup_register.rows) {
             register_ids.push(row.id);
         }
 
-        //Tạo specialistExamRecord cho từng register_id và specialist_id
+        // Bước 4: Tạo specialistExamRecord cho từng register_id và specialist_id
 
         for (const registerId of register_ids) {
             for (const examId of specialist_exam_ids) {
                 await query(
                     `INSERT INTO specialistExamRecord (register_id,  spe_exam_id,can_attach_file)
-       VALUES ($1, $2, $3)`,
+                    VALUES ($1, $2, $3)`,
                     [registerId, examId, false]
                 );
             }
         }
 
-        return res.status(200).json({ error: false }); // ✅ return all
+        // Bước 5: Tạo HealthRecord cho các register trên   
+        // const health_records = 
+
+        // return res.status(200).json({ error: false, message: `Tạo thành công Đợt khám định kỳ: ${name}` });
 
     } catch (err) {
         console.error("❌ Error creating Campaign ", err);

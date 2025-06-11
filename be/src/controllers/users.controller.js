@@ -80,7 +80,6 @@ export async function createStudent(req, res) {
 
       const id = data.user.id;
       console.log("✅ Created student in Supabase:", id);
-      return;
       // Step 2: Insert into database
       try {
             const result = await query(
@@ -183,11 +182,88 @@ export async function deleteParentByEmail() {
 
 }
 
+
+
+export async function getChildrenOfAParent(req, res) {
+      const { parent_id } = req.params;
+
+      if (!parent_id) {
+            return res.status(400).json({ error: true, message: "Thiếu ID bố/mẹ." });
+      }
+
+      try {
+            const result = await query(
+                  "SELECT * FROM student WHERE mom_id = $1 OR dad_id = $1",
+                  [parent_id]
+            );
+
+            if (result.rows.length === 0) {
+                  return res.status(404).json({ error: false, message: "Không tìm thấy học sinh nào với parent_id này." });
+            }
+
+            return res.status(200).json({ error: false, data: result.rows });
+      } catch (err) {
+            console.error("Gặp lỗi khi lấy thông tin học sinh của phụ huynh:", err);
+            return res.status(500).json({ error: true, message: "Lỗi server khi lấy học sinh." });
+      }
+}
+
+export async function getStudentByID(req, res) {
+      const { student_id } = req.params;
+
+      if (!student_id) {
+            return res.status(400).json({ error: true, message: "Thiếu ID student." });
+      }
+
+      try {
+            const result = await query(
+                  "SELECT * FROM student WHERE id = $1",
+                  [student_id]
+            );
+
+            if (result.rows.length === 0) {
+                  return res.status(404).json({ error: false, message: "Không tìm thấy học sinh nào với student_id này." });
+            }
+
+            return res.status(200).json({ error: false, data: result.rows[0] });
+      } catch (err) {
+            console.error("Gặp lỗi khi lấy thông tin học sinh của phụ huynh:", err);
+            return res.status(500).json({ error: true, message: "Lỗi server khi lấy học sinh." });
+      }
+}
+
+export async function getParentByID(req, res) {
+      const { parent_id } = req.params;
+
+      if (!parent_id) {
+            return res.status(400).json({ error: true, message: "Thiếu ID student." });
+      }
+
+      try {
+            const result = await query(
+                  "SELECT * FROM parent WHERE id = $1",
+                  [parent_id]
+            );
+
+            if (result.rows.length === 0) {
+                  return res.status(404).json({ error: false, message: "Không tìm thấy profile với parent_id này." });
+            }
+
+            return res.status(200).json({ error: false, data: result.rows[0] });
+      } catch (err) {
+            console.error("Gặp lỗi khi lấy thông tin phụ huynh", err);
+            return res.status(500).json({ error: true, message: "Lỗi server khi lấy profile với parent_id này." });
+      }
+}
+
+
+
+
 function generateRandomPassword() {
       const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       const lowercase = 'abcdefghijklmnopqrstuvwxyz';
       const numbers = '0123456789';
-      const special = '!#$%^*()_+@-=';
+      const special = '!#$%';
 
       const allChars = uppercase + lowercase + numbers + special;
 
