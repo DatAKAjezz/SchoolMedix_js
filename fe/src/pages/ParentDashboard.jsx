@@ -63,7 +63,7 @@ export const ParentDashboard = () =>{
     const [selectedChild, setSelectedChild] = useState(null);
 
     return(
-        <section className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-8">
+        <section className="max-w-7xl mx-auto min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Danh sách con của bạn</h1>
             {children && Object.keys(children).length > 0 ? (
                 <div className="flex justify-center items-center gap-20 mb-8">

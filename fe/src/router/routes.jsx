@@ -4,6 +4,7 @@ import Otp from "../pages/Auth/Otp";
 import HomePage from "../pages/HomePage";
 import MainLayout from "../layouts/MainLayout";
 import { ParentDashboard } from "../pages/ParentDashBoard";
+import { StudentHealthProfile } from "../pages/StudentHealthProfile";
 
 const routes = createBrowserRouter([
   {
@@ -25,7 +26,11 @@ const routes = createBrowserRouter([
       {
         path: "/ParentDashboard",
         element: <ParentDashboard />,
-      }
+      },
+      {
+        path: "ParentDashboard/StudentHealthProfile",
+        element: <StudentHealthProfile />,
+      },
     ],
   },
 ]);
